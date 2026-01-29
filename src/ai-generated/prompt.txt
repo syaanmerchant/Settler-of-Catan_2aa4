@@ -1,0 +1,7 @@
+AI tool/model: ChatGPT (GPT-5.2 Thinking)
+
+Hyperparameters: Not exposed in the ChatGPT web UI so default system was used. 
+
+Prompt (attached with UML model): 
+Generate Java code that matches this UML exactly (classes, fields, methods, enums, associations). Use package CatanAssignment1. If you need ResourceMap,
+implement it as Map<ResourceType, Integer> (or a wrapper class that contains that map).
