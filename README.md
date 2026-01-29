@@ -1,7 +1,7 @@
-# Settlers of Catan Simulator (SFWRENG 2AA4 — Assignment 1)
+# Settlers of Catan Simulator (SFWRENG 2AA4: Software Design I)
 
 
-This repository contains our team’s work for **Assignment 1**: a simplified Settlers of Catan simulator with 4 agents.
+This repository contains our team’s work for a simplified Settlers of Catan simulator with 4 agents.
 
 
 ## Team Members
