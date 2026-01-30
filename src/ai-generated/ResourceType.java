@@ -1,0 +1,10 @@
+package CatanAssignment1;
+
+public enum ResourceType {
+    WOOD,
+    BRICK,
+    WHEAT,
+    SHEEP,
+    ORE,
+    DESERT
+}
