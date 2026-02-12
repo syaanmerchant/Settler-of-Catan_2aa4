@@ -1,4 +1,4 @@
-package main.CatanAssignment1;
+package CatanAssignment1;
 
 import java.util.ArrayList;
 import java.util.HashMap;
