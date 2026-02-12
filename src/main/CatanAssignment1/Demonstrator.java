@@ -55,15 +55,20 @@ public class Demonstrator {
      * Uses fixed positions that satisfy the distance rule.
      */
     private static void setupInitialPlacements(Board board, List<Player> players) {
-        // Player 0: settlements at nodes 0, 24; roads on edges (0,1) and (12,24)
-        placeInitial(board, players.get(0), new int[] { 0, 24 }, new int[][] { { 0, 1 }, { 12, 24 } });
-        // Player 1: settlements at nodes 11, 35; roads (11,23) and (23,35)
-        placeInitial(board, players.get(1), new int[] { 11, 35 }, new int[][] { { 11, 23 }, { 23, 35 } });
-        // Player 2: settlements at nodes 36, 38; roads (36,37) and (37,38)
-        placeInitial(board, players.get(2), new int[] { 36, 38 }, new int[][] { { 36, 37 }, { 37, 38 } });
-        // Player 3: settlements at nodes 42, 44; roads (42,43) and (43,44) - distance
-        // rule satisfied
-        placeInitial(board, players.get(3), new int[] { 42, 44 }, new int[][] { { 42, 43 }, { 43, 44 } });
+        // Chosen to satisfy the distance rule (no adjacent settlements), and (2) give each player access to a healthier
+        // mix of resources, especially ensuring every player can produce WOOD and BRICK somewhere.
+
+        // Player 0: settlements at nodes 3, 5; roads (3,2) and (5,6)
+        placeInitial(board, players.get(0), new int[] { 3, 5 }, new int[][] { { 3, 2 }, { 5, 6 } });
+
+        // Player 1: settlements at nodes 7, 9; roads (7,6) and (9,10)
+        placeInitial(board, players.get(1), new int[] { 7, 9 }, new int[][] { { 7, 6 }, { 9, 10 } });
+
+        // Player 2: settlements at nodes 1, 16; roads (1,0) and (16,28)
+        placeInitial(board, players.get(2), new int[] { 1, 16 }, new int[][] { { 1, 0 }, { 16, 28 } });
+
+        // Player 3: settlements at nodes 12, 31; roads (12,24) and (31,32)
+        placeInitial(board, players.get(3), new int[] { 12, 31 }, new int[][] { { 12, 24 }, { 31, 32 } });
     }
 
     private static void placeInitial(Board board, Player p, int[] nodeIds, int[][] edgePairs) {
@@ -100,7 +105,7 @@ public class Demonstrator {
      */
     private static void grantStartingResources(Board board, List<Player> players) {
         // Second settlement node IDs (index 1) for each player
-        int[] secondSettlementNodes = { 24, 35, 38, 44 };
+        int[] secondSettlementNodes = { 5, 9, 16, 31 };
         for (int i = 0; i < 4; i++) {
             Node n = board.getNodes().get(secondSettlementNodes[i]);
             for (Tile t : board.getTiles()) {
