@@ -1,5 +1,6 @@
 package main.CatanAssignment1;
 
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,9 +35,10 @@ public class Config {
             List<String> lines = Files.readAllLines(path);
             for (String line : lines) {
                 line = line.trim().toLowerCase();
-                if (line.startsWith("turns ")) {
-                    String val = line.substring(6).trim();
-                    int t = Integer.parseInt(val);
+                if (line.startsWith("turns")) {
+                    String rest = line.substring(5).trim();
+                    if (rest.startsWith(":")) rest = rest.substring(1).trim();
+                    int t = Integer.parseInt(rest);
                     return Math.min(Math.max(1, t), MAX_TURNS);
                 }
             }
