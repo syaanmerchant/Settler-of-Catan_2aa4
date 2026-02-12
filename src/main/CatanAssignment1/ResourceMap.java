@@ -1,4 +1,5 @@
-package main.CatanAssignment1;
+package CatanAssignment1;
+
 
 
 import java.util.EnumMap;
