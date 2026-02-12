@@ -27,16 +27,19 @@ public class Simulator {
      */
     public void runSimulation() {
         while (currentRound < maxRounds) {
+            int roundNumber = currentRound + 1;
+
             for (Player p : players) {
                 int roll = p.rollDice();
-                System.out.println("P" + (p.getId() + 1) + " ROLL " + roll);
 
                 if (roll != 7) {
                     board.produce(roll);
                 }
 
                 BuildAction action = p.takeTurn(board);
-                System.out.println("P" + (p.getId() + 1) + " " + action.describe());
+
+                System.out.println(roundNumber + " / P" + (p.getId() + 1) + ": " + action.describe());
+
             }
 
             currentRound++;
@@ -48,12 +51,12 @@ public class Simulator {
         }
     }
 
+
     private void printVictoryPoints() {
-        StringBuilder sb = new StringBuilder("Round " + currentRound + ": ");
+        int roundNumber = currentRound; // careful: you increment before calling this right now
+        StringBuilder sb = new StringBuilder(roundNumber + " / VP:");
         for (int i = 0; i < players.size(); i++) {
-            if (i > 0)
-                sb.append(" ");
-            sb.append("VP").append(i + 1).append("=").append(players.get(i).getVictoryPoints());
+            sb.append(" P").append(i + 1).append("=").append(players.get(i).getVictoryPoints());
         }
         System.out.println(sb.toString());
     }
