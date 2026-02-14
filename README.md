@@ -12,7 +12,7 @@ Players gain resources  and attempt to build **ROAD / SETTLEMENT / CITY** or **P
 ## Team Members
 - Shifa Zaman
 - Syaan Merchant
-- Saranya Alamanda
+- Lakshmi Saranya Alamanda
 - Sanika Surose
 
 ---
