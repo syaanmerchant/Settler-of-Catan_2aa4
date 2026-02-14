@@ -5,6 +5,10 @@ Players gain resources  and attempt to build **ROAD / SETTLEMENT / CITY** or **P
 
 ---
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=syaanmerchant_Settler-of-Catan_2aa4&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=syaanmerchant_Settler-of-Catan_2aa4)
+
+---
+
 ## Team Members
 - Shifa Zaman
 - Syaan Merchant
