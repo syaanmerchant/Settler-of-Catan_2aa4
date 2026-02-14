@@ -54,7 +54,7 @@ public class Simulator {
 
 
     private void printVictoryPoints() {
-        int roundNumber = currentRound; // careful: you increment before calling this right now
+        int roundNumber = currentRound; 
         StringBuilder sb = new StringBuilder(roundNumber + " / VP:");
         for (int i = 0; i < players.size(); i++) {
             sb.append(" P").append(i + 1).append("=").append(players.get(i).getVictoryPoints());
