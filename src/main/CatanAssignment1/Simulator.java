@@ -12,13 +12,15 @@ public class Simulator {
     private int currentRound;
     private Board board;
     private List<Player> players;
+    private final GameStateWriter gameStateWriter;
     private static final int WIN_VP = 10;
 
-    public Simulator(Board board, List<Player> players, int maxRounds) {
+    public Simulator(Board board, List<Player> players, int maxRounds, GameStateWriter gameStateWriter) {
         this.board = board;
         this.players = players;
         this.maxRounds = Math.min(maxRounds, 8192);
         this.currentRound = 0;
+        this.gameStateWriter = gameStateWriter;
     }
 
     /**
@@ -41,6 +43,9 @@ public class Simulator {
 
                 System.out.println(roundNumber + " / P" + (p.getId() + 1) + ": " + action.describe());
 
+                if (gameStateWriter != null) {
+                    gameStateWriter.write(board, players);
+                }
             }
 
             currentRound++;

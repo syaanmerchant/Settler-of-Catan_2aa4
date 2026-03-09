@@ -3,6 +3,7 @@ package CatanAssignment1;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Demonstrator: main entry point for the Catan simulator.
@@ -35,8 +36,11 @@ public class Demonstrator {
 
         // 3. Create 4 players and place initial settlements + roads
         List<Player> players = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
-            players.add(new Player(i));
+        CommandParser parser = new CommandParser();
+        Scanner scanner = new Scanner(System.in);
+        players.add(new HumanPlayer(0, parser, scanner));
+        for (int i = 1; i < 4; i++) {
+            players.add(new MachinePlayer(i));
         }
 
         // Initial setup: 2 settlements + 2 roads per player (Beginners map positions)
@@ -47,7 +51,8 @@ public class Demonstrator {
         grantStartingResources(board, players);
 
         // 5. Run simulation
-        Simulator sim = new Simulator(board, players, maxRounds);
+        GameStateWriter writer = new GameStateWriter("state.json");
+        Simulator sim = new Simulator(board, players, maxRounds, writer);
         sim.runSimulation();
     }
 

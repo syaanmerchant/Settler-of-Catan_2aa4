@@ -13,7 +13,7 @@ public class BoardValidationTest {
         // Fresh board/player for each test to avoid errors
         board = new Board();
         board.setupMap();
-        p0 = new Player(0);
+        p0 = new MachinePlayer(0);
     }
 
     // Invariant: cannot place a road on an already-occupied edge

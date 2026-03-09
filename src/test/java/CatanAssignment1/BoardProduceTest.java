@@ -14,7 +14,7 @@ public class BoardProduceTest {
         // Fresh board/player for each test
         board = new Board();
         board.setupMap();
-        p = new Player(0);
+        p = new MachinePlayer(0);
     }
 
     // Rolling a 7 produces nothing (robber logic handled elsewhere)
