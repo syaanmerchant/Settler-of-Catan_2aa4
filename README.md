@@ -1,7 +1,6 @@
-# Settlers of Catan Simulator (SFWRENG 2AA4 — Assignment 1)
+# Settlers of Catan Simulator (SFWRENG 2AA4)
 
-A simplified **Settlers of Catan** simulator with **4 computer players**.  
-Players gain resources  and attempt to build **ROAD / SETTLEMENT / CITY** or **PASS** as per Assignment 1 rules.
+A simplified **Settlers of Catan** simulator that supports **3 machine players + 1 human player**, resource production, building and a visualizer of the gameboard. 
 
 ---
 
@@ -34,8 +33,10 @@ Players gain resources  and attempt to build **ROAD / SETTLEMENT / CITY** or **P
 - **Main implementation:** `src/main/CatanAssignment1/`
 - **Entry point to run:** `Demonstrator.java`
 
----
+### Visualizer Integration
+- **Visualizer scripts + assets:** `visualize/`
+- **Base map file used by visualizer:** `visualize/base_map.json`
 
-## How to Run in IntelliJ
-Run:
-- `src/main/CatanAssignment1/Demonstrator.java`
+### Reports
+- **A1 report + artifacts:** `docs/assignment1/`
+- **A2 report + artifacts:** `docs/assignment2/`
