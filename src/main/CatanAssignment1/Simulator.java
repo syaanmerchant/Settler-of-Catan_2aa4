@@ -2,11 +2,16 @@ package CatanAssignment1;
 
 
 import java.util.List;
+import java.util.Random;
 
 /**
  * Coordinates the Catan simulation: rounds, turns, production, and termination.
  */
 public class Simulator {
+
+    public interface HumanTurnContext {
+        void applyRoll(HumanPlayer human, int roll);
+    }
 
     private int maxRounds;
     private int currentRound;
@@ -14,6 +19,7 @@ public class Simulator {
     private List<Player> players;
     private final GameStateWriter gameStateWriter;
     private static final int WIN_VP = 10;
+    private final Random random = new Random();
 
     public Simulator(Board board, List<Player> players, int maxRounds, GameStateWriter gameStateWriter) {
         this.board = board;
@@ -29,22 +35,27 @@ public class Simulator {
      * Prints actions and VPs at end of each round.
      */
     public void runSimulation() {
+        HumanPlayer human = findHumanPlayer();
         while (currentRound < maxRounds) {
             int roundNumber = currentRound + 1;
 
             for (Player p : players) {
-                int roll = p.rollDice();
-
-                if (roll != 7) {
-                    board.produce(roll);
+                if (p instanceof HumanPlayer) {
+                    human.playTurn(roundNumber, board, (h, roll) -> applyRollForPlayer(h, roll));
+                } else {
+                    int roll = p.rollDice();
+                    applyRollForPlayer(p, roll);
+                    BuildAction action = p.takeTurn(board);
+                    System.out.println(roundNumber + " / P" + (p.getId() + 1) + ": " + action.describe());
                 }
-
-                BuildAction action = p.takeTurn(board);
-
-                System.out.println(roundNumber + " / P" + (p.getId() + 1) + ": " + action.describe());
 
                 if (gameStateWriter != null) {
                     gameStateWriter.write(board, players);
+                }
+
+                // Step-forward: after any non-human agent acts, wait for GO.
+                if (human != null && !(p instanceof HumanPlayer)) {
+                    human.waitForGoGate(roundNumber);
                 }
             }
 
@@ -55,6 +66,23 @@ public class Simulator {
                 break;
             }
         }
+    }
+
+    private void applyRollForPlayer(Player roller, int roll) {
+        if (roll != 7) {
+            board.produce(roll);
+            return;
+        }
+        board.handleRobberRoll(roller, players, random);
+    }
+
+    private HumanPlayer findHumanPlayer() {
+        for (Player p : players) {
+            if (p instanceof HumanPlayer) {
+                return (HumanPlayer) p;
+            }
+        }
+        return null;
     }
 
 

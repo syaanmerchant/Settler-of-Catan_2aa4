@@ -1,11 +1,10 @@
 package CatanAssignment1;
 
-import java.util.List;
 import java.util.Scanner;
 
 /**
  * Human-controlled player that reads commands from an input stream and uses a
- * {@link CommandParser} to decide its build action each turn.
+ * {@link CommandParser} to act each turn.
  */
 public class HumanPlayer extends Player {
 
@@ -18,17 +17,24 @@ public class HumanPlayer extends Player {
         this.scanner = scanner;
     }
 
-    @Override
-    public BuildAction takeTurn(Board board) {
+    /**
+     * Assignment 2 human turn procedure:
+     * - LIST can be used any time
+     * - ROLL must happen once before any BUILD/GO
+     * - BUILD commands may be issued after ROLL
+     * - GO ends the turn (only after ROLL)
+     */
+    public void playTurn(int turnId, Board board, Simulator.HumanTurnContext ctx) {
         printHelp();
+        boolean rolled = false;
 
         while (true) {
-            System.out.print("P" + (getId() + 1)
-                    + " enter command (road A-B | settlement N | city N | pass): ");
+            System.out.print(turnId + " / P" + (getId() + 1)
+                    + " enter command (Roll | List | Build ... | Go): ");
 
             if (!scanner.hasNextLine()) {
                 System.out.println();
-                return new BuildAction(BuildType.PASS, null, null);
+                return;
             }
 
             String line = scanner.nextLine();
@@ -39,62 +45,95 @@ public class HumanPlayer extends Player {
                 continue;
             }
 
-            if (result.isPass()) {
-                return new BuildAction(BuildType.PASS, null, null);
+            switch (result.getCommandType()) {
+                case LIST:
+                    printHand(rolled);
+                    break;
+                case ROLL:
+                    if (rolled) {
+                        System.out.println("  You already rolled this turn. Use Build ... or Go.");
+                        break;
+                    }
+                    int roll = rollDice();
+                    rolled = true;
+                    ctx.applyRoll(this, roll);
+                    System.out.println(turnId + " / P" + (getId() + 1) + ": ROLL " + roll);
+                    break;
+                case GO:
+                    if (!rolled) {
+                        System.out.println("  You must Roll before ending your turn with Go.");
+                        break;
+                    }
+                    System.out.println(turnId + " / P" + (getId() + 1) + ": GO");
+                    return;
+                case BUILD_ROAD:
+                case BUILD_SETTLEMENT:
+                case BUILD_CITY:
+                    if (!rolled) {
+                        System.out.println("  You must Roll before building. Try: Roll");
+                        break;
+                    }
+                    BuildAction action = toBuildAction(board, result);
+                    if (action == null) {
+                        break;
+                    }
+                    if (!board.validateBuild(this, action)) {
+                        System.out.println("  That build is not allowed by the current game rules/state. Try again.");
+                        break;
+                    }
+                    board.executeBuild(this, action);
+                    System.out.println(turnId + " / P" + (getId() + 1) + ": " + action.describe());
+                    break;
+                default:
+                    System.out.println("  Error: unsupported command type: " + result.getCommandType());
             }
-
-            BuildType type = result.getBuildType();
-            BuildAction action = null;
-
-            if (type == BuildType.ROAD) {
-                Integer aId = result.getNodeIdA();
-                Integer bId = result.getNodeIdB();
-                Edge edge = findEdge(board, aId, bId);
-                if (edge == null) {
-                    System.out.println("  Error: no edge found between nodes " + aId + " and " + bId + ".");
-                    continue;
-                }
-                action = new BuildAction(BuildType.ROAD, null, edge);
-            } else if (type == BuildType.SETTLEMENT || type == BuildType.CITY) {
-                Integer nodeId = result.getNodeId();
-                Node node = nodeById(board.getNodes(), nodeId);
-                if (node == null) {
-                    System.out
-                            .println("  Error: node " + nodeId + " does not exist on this board.");
-                    continue;
-                }
-                action = new BuildAction(type, node, null);
-            } else {
-                System.out.println("  Error: unsupported build type: " + type);
-                continue;
-            }
-
-            if (!board.validateBuild(this, action)) {
-                System.out.println("  That build is not allowed by the current game rules/state. Try again.");
-                continue;
-            }
-
-            board.executeBuild(this, action);
-            return action;
         }
+    }
+
+    /**
+     * Step-forward gate: wait until the human enters GO.
+     */
+    public void waitForGoGate(int turnId) {
+        while (true) {
+            System.out.print(turnId + " / (step) type Go to proceed: ");
+            if (!scanner.hasNextLine()) {
+                System.out.println();
+                return;
+            }
+            CommandParser.ParseResult r = parser.parse(scanner.nextLine());
+            if (!r.isValid()) {
+                System.out.println("  Error: " + r.getErrorMessage());
+                continue;
+            }
+            if (r.getCommandType() == CommandParser.CommandType.GO) {
+                return;
+            }
+            System.out.println("  Please type Go to proceed.");
+        }
+    }
+
+    @Override
+    public BuildAction takeTurn(Board board) {
+        // Human turns are orchestrated by Simulator for A2 (ROLL/LIST/BUILD/GO).
+        return new BuildAction(BuildType.PASS, null, null);
     }
 
     private void printHelp() {
         System.out.println();
         System.out.println("=== Human player controls ===");
         System.out.println("Examples of valid commands (case-insensitive):");
-        System.out.println("  road 11-12      -> build a road between nodes 11 and 12");
-        System.out.println("  settlement 5    -> build a settlement at node 5");
-        System.out.println("  city 7          -> upgrade your settlement at node 7 to a city");
-        System.out.println("  pass            -> skip building this turn");
+        System.out.println("  Roll                           -> roll dice and collect resources (or trigger robber on 7)");
+        System.out.println("  List                           -> show your current hand");
+        System.out.println("  Build road [11,12]             -> build a road between nodes 11 and 12");
+        System.out.println("  Build settlement [5]           -> build a settlement at node 5");
+        System.out.println("  Build city [7]                 -> upgrade your settlement at node 7 to a city");
+        System.out.println("  Go                             -> end your turn");
         System.out.println();
     }
 
-    private static Node nodeById(List<Node> nodes, int id) {
-        if (id < 0 || id >= nodes.size()) {
-            return null;
-        }
-        return nodes.get(id);
+    private void printHand(boolean rolled) {
+        System.out.println("  Rolled this turn: " + rolled);
+        System.out.println("  Hand: " + getResourceHand().getResources());
     }
 
     private static Edge findEdge(Board board, int nodeA, int nodeB) {
@@ -105,6 +144,35 @@ public class HumanPlayer extends Player {
                 return e;
             }
         }
+        return null;
+    }
+
+    private BuildAction toBuildAction(Board board, CommandParser.ParseResult result) {
+        if (result.getCommandType() == CommandParser.CommandType.BUILD_ROAD) {
+            int a = result.getNodeIdA();
+            int b = result.getNodeIdB();
+            Edge edge = findEdge(board, a, b);
+            if (edge == null) {
+                System.out.println("  Error: no edge found between nodes " + a + " and " + b + ".");
+                return null;
+            }
+            return new BuildAction(BuildType.ROAD, null, edge);
+        }
+
+        if (result.getCommandType() == CommandParser.CommandType.BUILD_SETTLEMENT
+                || result.getCommandType() == CommandParser.CommandType.BUILD_CITY) {
+            int nodeId = result.getNodeId();
+            if (nodeId < 0 || nodeId >= board.getNodes().size()) {
+                System.out.println("  Error: node " + nodeId + " does not exist on this board.");
+                return null;
+            }
+            Node node = board.getNodes().get(nodeId);
+            BuildType type = result.getCommandType() == CommandParser.CommandType.BUILD_CITY ? BuildType.CITY
+                    : BuildType.SETTLEMENT;
+            return new BuildAction(type, node, null);
+        }
+
+        System.out.println("  Error: command is not a build command.");
         return null;
     }
 }

@@ -31,7 +31,7 @@ public class GameStateWriterTest {
 
         Path temp = Files.createTempFile("catan-state", ".json");
 
-        GameStateWriter writer = new GameStateWriter(temp.toString());
+        GameStateWriter writer = new GameStateWriter(temp.toString(), true);
         writer.write(board, players);
 
         String json = Files.readString(temp, StandardCharsets.UTF_8);

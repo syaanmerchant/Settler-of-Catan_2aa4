@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Board manages the Catan map: tiles, nodes, edges.
@@ -17,6 +18,7 @@ public class Board {
     private Map<Node, List<Edge>> nodeToEdges = new HashMap<>();
     private Map<Node, List<Node>> nodeToNeighbours = new HashMap<>();
     private Map<Tile, List<Node>> tileToNodes = new HashMap<>();
+    private Tile robberTile;
 
     /**
      * Sets up the Catan board using the Beginners map topology.
@@ -88,6 +90,15 @@ public class Board {
                 tile.addCornerNode(n);
             }
             tiles.add(tile);
+        }
+
+        // Initialize robber on the desert tile (if any)
+        robberTile = null;
+        for (Tile tile : tiles) {
+            if (tile.getResourceType() == ResourceType.DESERT) {
+                robberTile = tile;
+                break;
+            }
         }
     }
 
@@ -167,6 +178,9 @@ public class Board {
         if (roll == 7)
             return;
         for (Tile tile : tiles) {
+            if (robberTile != null && tile == robberTile) {
+                continue;
+            }
             if (tile.getResourceType() == ResourceType.DESERT || tile.getNumberToken() != roll)
                 continue;
             ResourceType res = tile.getResourceType();
@@ -283,5 +297,53 @@ public class Board {
             case PASS:
                 break;
         }
+    }
+
+    /**
+     * Robber flow (A2 R2.5 simplifications):
+     * - On 7: players with >7 cards discard half (floor)
+     * - Robber moves to a random tile
+     * - A qualifying adjacent player (settlement/city adjacent to robber tile) is chosen
+     *   randomly to give one random card to the roller.
+     */
+    public void handleRobberRoll(Player roller, List<Player> players, Random rng) {
+        Random random = (rng != null) ? rng : new Random();
+
+        // Discard half for players with >7
+        if (players != null) {
+            for (Player p : players) {
+                int total = p.getResourceHand().totalCards();
+                if (total > 7) {
+                    p.getResourceHand().discardRandom(total / 2, random);
+                }
+            }
+        }
+
+        // Move robber to random tile
+        if (!tiles.isEmpty()) {
+            robberTile = tiles.get(random.nextInt(tiles.size()));
+        }
+
+        // Steal one random card from a qualifying adjacent player
+        if (roller == null || robberTile == null || players == null) {
+            return;
+        }
+
+        List<Player> candidates = new ArrayList<>();
+        for (Node n : robberTile.getCornerNodes()) {
+            Player owner = n.getStructureOwner();
+            if (owner != null && owner != roller && !candidates.contains(owner)
+                    && (n.getStructureType() == StructureType.SETTLEMENT || n.getStructureType() == StructureType.CITY)) {
+                candidates.add(owner);
+            }
+        }
+
+        if (candidates.isEmpty()) {
+            return;
+        }
+
+        Player victim = candidates.get(random.nextInt(candidates.size()));
+        victim.getResourceHand().removeRandomCard(random)
+                .ifPresent(rt -> roller.getResourceHand().addResource(rt, 1));
     }
 }
