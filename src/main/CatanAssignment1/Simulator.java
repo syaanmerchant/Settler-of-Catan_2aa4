@@ -20,6 +20,7 @@ public class Simulator {
     private final GameStateWriter gameStateWriter;
     private static final int WIN_VP = 10;
     private final Random random = new Random();
+    private final CommandHistory history = new CommandHistory();
 
     public Simulator(Board board, List<Player> players, int maxRounds, GameStateWriter gameStateWriter) {
         this.board = board;
@@ -41,7 +42,7 @@ public class Simulator {
 
             for (Player p : players) {
                 if (p instanceof HumanPlayer) {
-                    human.playTurn(roundNumber, board, (h, roll) -> applyRollForPlayer(h, roll));
+                    human.playTurn(roundNumber, board, (h, roll) -> applyRollForPlayer(h, roll), history);
                 } else {
                     int roll = p.rollDice();
                     applyRollForPlayer(p, roll);
@@ -70,10 +71,14 @@ public class Simulator {
 
     private void applyRollForPlayer(Player roller, int roll) {
         if (roll != 7) {
-            board.produce(roll);
+            history.executeCommand(new ProduceCommand(board, roll, players));
             return;
         }
         board.handleRobberRoll(roller, players, random);
+    }
+
+    public CommandHistory getHistory() {
+        return history;
     }
 
     private HumanPlayer findHumanPlayer() {

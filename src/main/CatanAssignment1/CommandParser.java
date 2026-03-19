@@ -19,6 +19,8 @@ public class CommandParser {
     private static final Pattern ROLL_PATTERN = Pattern.compile("(?i)^\\s*roll\\s*$");
     private static final Pattern GO_PATTERN = Pattern.compile("(?i)^\\s*go\\s*$");
     private static final Pattern LIST_PATTERN = Pattern.compile("(?i)^\\s*list\\s*$");
+    private static final Pattern UNDO_PATTERN = Pattern.compile("(?i)^\\s*undo\\s*$");
+    private static final Pattern REDO_PATTERN = Pattern.compile("(?i)^\\s*redo\\s*$");
 
     private static final Pattern BUILD_SETTLEMENT_PATTERN =
             Pattern.compile("(?i)^\\s*build\\s+settlement\\s*\\[\\s*(\\d+)\\s*\\]\\s*$");
@@ -33,7 +35,9 @@ public class CommandParser {
         LIST,
         BUILD_ROAD,
         BUILD_SETTLEMENT,
-        BUILD_CITY
+        BUILD_CITY,
+        UNDO,
+        REDO
     }
 
     public static final class ParseResult {
@@ -80,6 +84,14 @@ public class CommandParser {
 
         public static ParseResult buildCity(int nodeId) {
             return new ParseResult(true, CommandType.BUILD_CITY, nodeId, null, null, null);
+        }
+
+        public static ParseResult undo() {
+            return new ParseResult(true, CommandType.UNDO, null, null, null, null);
+        }
+
+        public static ParseResult redo() {
+            return new ParseResult(true, CommandType.REDO, null, null, null, null);
         }
 
         public static ParseResult error(String message) {
@@ -136,6 +148,14 @@ public class CommandParser {
             return ParseResult.go();
         }
 
+        if (UNDO_PATTERN.matcher(trimmed).matches()) {
+            return ParseResult.undo();
+        }
+
+        if (REDO_PATTERN.matcher(trimmed).matches()) {
+            return ParseResult.redo();
+        }
+
         Matcher mBuildRoad = BUILD_ROAD_PATTERN.matcher(trimmed);
         if (mBuildRoad.matches()) {
             int a = Integer.parseInt(mBuildRoad.group(1));
@@ -159,7 +179,7 @@ public class CommandParser {
         }
 
         return ParseResult.error("Could not understand command. Examples: 'Roll', 'List', 'Build road [11,12]', "
-                + "'Build settlement [5]', 'Build city [7]', 'Go'.");
+                + "'Build settlement [5]', 'Build city [7]', 'Undo', 'Redo', 'Go'.");
     }
 }
 

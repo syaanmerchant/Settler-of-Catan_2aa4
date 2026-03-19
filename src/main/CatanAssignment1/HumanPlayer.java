@@ -91,6 +91,82 @@ public class HumanPlayer extends Player {
     }
 
     /**
+     * Overloaded version that routes builds through CommandHistory
+     * and supports Undo / Redo commands.
+     */
+    public void playTurn(int turnId, Board board, Simulator.HumanTurnContext ctx, CommandHistory history) {
+        printHelp();
+        boolean rolled = false;
+
+        while (true) {
+            System.out.print(turnId + " / P" + (getId() + 1)
+                    + " enter command (Roll | List | Build ... | Undo | Redo | Go): ");
+
+            if (!scanner.hasNextLine()) {
+                System.out.println();
+                return;
+            }
+
+            String line = scanner.nextLine();
+            CommandParser.ParseResult result = parser.parse(line);
+
+            if (!result.isValid()) {
+                System.out.println("  Error: " + result.getErrorMessage());
+                continue;
+            }
+
+            switch (result.getCommandType()) {
+                case LIST:
+                    printHand(rolled);
+                    break;
+                case ROLL:
+                    if (rolled) {
+                        System.out.println("  You already rolled this turn. Use Build ... or Go.");
+                        break;
+                    }
+                    int roll = rollDice();
+                    rolled = true;
+                    ctx.applyRoll(this, roll);
+                    System.out.println(turnId + " / P" + (getId() + 1) + ": ROLL " + roll);
+                    break;
+                case GO:
+                    if (!rolled) {
+                        System.out.println("  You must Roll before ending your turn with Go.");
+                        break;
+                    }
+                    System.out.println(turnId + " / P" + (getId() + 1) + ": GO");
+                    return;
+                case BUILD_ROAD:
+                case BUILD_SETTLEMENT:
+                case BUILD_CITY:
+                    if (!rolled) {
+                        System.out.println("  You must Roll before building. Try: Roll");
+                        break;
+                    }
+                    BuildAction action = toBuildAction(board, result);
+                    if (action == null) {
+                        break;
+                    }
+                    if (!board.validateBuild(this, action)) {
+                        System.out.println("  That build is not allowed by the current game rules/state. Try again.");
+                        break;
+                    }
+                    history.executeCommand(new BuildCommand(board, this, action));
+                    System.out.println(turnId + " / P" + (getId() + 1) + ": " + action.describe());
+                    break;
+                case UNDO:
+                    history.undo();
+                    break;
+                case REDO:
+                    history.redo();
+                    break;
+                default:
+                    System.out.println("  Error: unsupported command type: " + result.getCommandType());
+            }
+        }
+    }
+
+    /**
      * Step-forward gate: wait until the human enters GO.
      */
     public void waitForGoGate(int turnId) {
@@ -127,6 +203,8 @@ public class HumanPlayer extends Player {
         System.out.println("  Build road [11,12]             -> build a road between nodes 11 and 12");
         System.out.println("  Build settlement [5]           -> build a settlement at node 5");
         System.out.println("  Build city [7]                 -> upgrade your settlement at node 7 to a city");
+        System.out.println("  Undo                           -> undo your last action");
+        System.out.println("  Redo                           -> redo an undone action");
         System.out.println("  Go                             -> end your turn");
         System.out.println();
     }
