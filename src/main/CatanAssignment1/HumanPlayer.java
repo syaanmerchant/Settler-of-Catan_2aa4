@@ -17,90 +17,23 @@ public class HumanPlayer extends Player {
         this.scanner = scanner;
     }
 
-    /**
-     * Assignment 2 human turn procedure:
-     * - LIST can be used any time
-     * - ROLL must happen once before any BUILD/GO
-     * - BUILD commands may be issued after ROLL
-     * - GO ends the turn (only after ROLL)
-     */
     public void playTurn(int turnId, Board board, Simulator.HumanTurnContext ctx) {
-        printHelp();
-        boolean rolled = false;
-
-        while (true) {
-            System.out.print(turnId + " / P" + (getId() + 1)
-                    + " enter command (Roll | List | Build ... | Go): ");
-
-            if (!scanner.hasNextLine()) {
-                System.out.println();
-                return;
-            }
-
-            String line = scanner.nextLine();
-            CommandParser.ParseResult result = parser.parse(line);
-
-            if (!result.isValid()) {
-                System.out.println("  Error: " + result.getErrorMessage());
-                continue;
-            }
-
-            switch (result.getCommandType()) {
-                case LIST:
-                    printHand(rolled);
-                    break;
-                case ROLL:
-                    if (rolled) {
-                        System.out.println("  You already rolled this turn. Use Build ... or Go.");
-                        break;
-                    }
-                    int roll = rollDice();
-                    rolled = true;
-                    ctx.applyRoll(this, roll);
-                    System.out.println(turnId + " / P" + (getId() + 1) + ": ROLL " + roll);
-                    break;
-                case GO:
-                    if (!rolled) {
-                        System.out.println("  You must Roll before ending your turn with Go.");
-                        break;
-                    }
-                    System.out.println(turnId + " / P" + (getId() + 1) + ": GO");
-                    return;
-                case BUILD_ROAD:
-                case BUILD_SETTLEMENT:
-                case BUILD_CITY:
-                    if (!rolled) {
-                        System.out.println("  You must Roll before building. Try: Roll");
-                        break;
-                    }
-                    BuildAction action = toBuildAction(board, result);
-                    if (action == null) {
-                        break;
-                    }
-                    if (!board.validateBuild(this, action)) {
-                        System.out.println("  That build is not allowed by the current game rules/state. Try again.");
-                        break;
-                    }
-                    board.executeBuild(this, action);
-                    System.out.println(turnId + " / P" + (getId() + 1) + ": " + action.describe());
-                    break;
-                default:
-                    System.out.println("  Error: unsupported command type: " + result.getCommandType());
-            }
-        }
+        playTurn(turnId, board, ctx, null);
     }
 
     /**
-     * Overloaded version that routes builds through CommandHistory
-     * and supports Undo / Redo commands.
+     * Handles a human player's turn with optional CommandHistory support.
+     * When history is non-null, builds route through it and Undo/Redo are available.
      */
     public void playTurn(int turnId, Board board, Simulator.HumanTurnContext ctx, CommandHistory history) {
         printHelp();
         boolean rolled = false;
 
         while (true) {
-            System.out.print(turnId + " / P" + (getId() + 1)
-                    + " enter command (Roll | List | Build ... | Undo | Redo | Go): ");
+            String hint = history != null
+                    ? "(Roll | List | Build ... | Undo | Redo | Go)"
+                    : "(Roll | List | Build ... | Go)";
+            System.out.print(turnId + " / P" + (getId() + 1) + " enter command " + hint + ": ");
 
             if (!scanner.hasNextLine()) {
                 System.out.println();
@@ -151,14 +84,18 @@ public class HumanPlayer extends Player {
                         System.out.println("  That build is not allowed by the current game rules/state. Try again.");
                         break;
                     }
-                    history.executeCommand(new BuildCommand(board, this, action));
+                    if (history != null) {
+                        history.executeCommand(new BuildCommand(board, this, action));
+                    } else {
+                        board.executeBuild(this, action);
+                    }
                     System.out.println(turnId + " / P" + (getId() + 1) + ": " + action.describe());
                     break;
                 case UNDO:
-                    history.undo();
+                    if (history != null) history.undo();
                     break;
                 case REDO:
-                    history.redo();
+                    if (history != null) history.redo();
                     break;
                 default:
                     System.out.println("  Error: unsupported command type: " + result.getCommandType());
@@ -254,4 +191,3 @@ public class HumanPlayer extends Player {
         return null;
     }
 }
-
