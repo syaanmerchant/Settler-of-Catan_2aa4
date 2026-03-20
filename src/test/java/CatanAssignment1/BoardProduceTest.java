@@ -2,6 +2,10 @@ package CatanAssignment1;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Random;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class BoardProduceTest {
@@ -70,5 +74,31 @@ public class BoardProduceTest {
         int after = p.getResourceHand().getResources().get(res);
 
         assertEquals(before + 2, after, "City should gain 2 resources when tile number is rolled");
+    }
+
+    // robber roll discards half from >7 hands and steals from adjacent player
+    @Test
+    void handleRobberRoll_discardsAndSteals() {
+        Player roller = new MachinePlayer(0);
+        Player victim = new MachinePlayer(1);
+
+        // victim settlements on corners covering all 19 tiles
+        int[] corners = {13, 15, 17, 19, 21, 22};
+        for (int c : corners) {
+            Node n = board.getNodes().get(c);
+            n.setStructureOwner(victim);
+            n.setStructureType(StructureType.SETTLEMENT);
+        }
+        victim.getResourceHand().addResource(ResourceType.WOOD, 5);
+
+        // >7 cards triggers the discard-half path
+        roller.getResourceHand().addResource(ResourceType.WHEAT, 8);
+
+        List<Player> all = List.of(roller, victim);
+        board.handleRobberRoll(roller, all, new Random(0));
+
+        // roller: 8 wheat − 4 discarded + 1 stolen wood = 5
+        assertEquals(5, roller.getResourceHand().totalCards());
+        assertEquals(4, victim.getResourceHand().totalCards());
     }
 }

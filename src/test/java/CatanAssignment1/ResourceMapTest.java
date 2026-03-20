@@ -1,6 +1,10 @@
 package CatanAssignment1;
 
 import org.junit.jupiter.api.Test;
+
+import java.util.EnumMap;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ResourceMapTest {
@@ -60,5 +64,27 @@ public class ResourceMapTest {
         ResourceMap m = new ResourceMap();
         m.put(ResourceType.SHEEP, -10);
         assertEquals(0, m.get(ResourceType.SHEEP), "Negative values should clamp to 0");
+    }
+
+    // constructor that accepts a Map should copy entries
+    @Test
+    void constructor_withMap_copiesEntries() {
+        Map<ResourceType, Integer> init = new EnumMap<>(ResourceType.class);
+        init.put(ResourceType.WOOD, 3);
+        init.put(ResourceType.BRICK, 2);
+
+        ResourceMap rm = new ResourceMap(init);
+        assertEquals(3, rm.get(ResourceType.WOOD));
+        assertEquals(2, rm.get(ResourceType.BRICK));
+        assertEquals(5, rm.total());
+    }
+
+    // deduct(null) should be a safe no-op
+    @Test
+    void deduct_null_doesNothing() {
+        ResourceMap rm = new ResourceMap();
+        rm.put(ResourceType.WOOD, 3);
+        rm.deduct(null);
+        assertEquals(3, rm.get(ResourceType.WOOD));
     }
 }

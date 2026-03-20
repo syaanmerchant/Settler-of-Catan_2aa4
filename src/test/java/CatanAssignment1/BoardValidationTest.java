@@ -128,4 +128,39 @@ public class BoardValidationTest {
         assertNull(e.getRoadOwner());
         assertEquals(0, p0.getVictoryPoints());
     }
+
+    // null player or null action → false; PASS → true; city with null node → false
+    @Test
+    void validateBuild_edgeCases_nullPassAndCityNull() {
+        Edge e = board.getEdges().get(0);
+        BuildAction road = new BuildAction(BuildType.ROAD, null, e);
+        assertFalse(board.validateBuild(null, road));
+        assertFalse(board.validateBuild(p0, null));
+
+        BuildAction pass = new BuildAction(BuildType.PASS, null, null);
+        assertTrue(board.validateBuild(p0, pass));
+
+        BuildAction city = new BuildAction(BuildType.CITY, null, null);
+        assertFalse(board.validateBuild(p0, city));
+
+        // null node helpers return empty lists
+        assertTrue(board.getIncidentEdges(null).isEmpty());
+        assertTrue(board.getNeighbourNodes(null).isEmpty());
+    }
+
+    // executeBuild bails out early when validation itself fails (occupied edge)
+    @Test
+    void executeBuild_doesNothing_whenValidationFails() {
+        Edge e = board.getEdges().get(0);
+        e.setRoadOwner(p0);
+
+        p0.getResourceHand().addResource(ResourceType.WOOD, 1);
+        p0.getResourceHand().addResource(ResourceType.BRICK, 1);
+        int cards = p0.getResourceHand().totalCards();
+
+        BuildAction a = new BuildAction(BuildType.ROAD, null, e);
+        board.executeBuild(p0, a);
+
+        assertEquals(cards, p0.getResourceHand().totalCards());
+    }
 }
