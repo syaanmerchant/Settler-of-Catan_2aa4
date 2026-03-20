@@ -8,8 +8,26 @@ import java.util.List;
  */
 public class MachinePlayer extends Player {
 
+    private MachineDecisionStrategy strategy;
+
     public MachinePlayer(int id) {
         super(id);
+        this.strategy = createDefaultStrategy();
+    }
+
+    private static MachineDecisionStrategy createDefaultStrategy() {
+        List<ImmediateValueRule> rules = new ArrayList<>();
+        // Immediate values as required by Task 2 (R3.2).
+        rules.add(new VpEarningRule());
+        rules.add(new NonVpBuildRule());
+        rules.add(new LowHandAfterSpendRule());
+        return new ImmediateValueDecisionStrategy(rules);
+    }
+
+    public void setStrategy(MachineDecisionStrategy strategy) {
+        if (strategy != null) {
+            this.strategy = strategy;
+        }
     }
 
     /**
@@ -50,7 +68,10 @@ public class MachinePlayer extends Player {
             return new BuildAction(BuildType.PASS, null, null);
         }
 
-        BuildAction chosen = validBuilds.get(getRandom().nextInt(validBuilds.size()));
+        BuildAction chosen = strategy.chooseAction(this, board, validBuilds);
+        if (chosen == null) {
+            chosen = validBuilds.get(getRandom().nextInt(validBuilds.size()));
+        }
         board.executeBuild(this, chosen);
         return chosen;
     }
