@@ -72,4 +72,60 @@ public class BoardValidationTest {
         BuildAction a2 = new BuildAction(BuildType.CITY, n, null);
         assertTrue(board.validateBuild(p0, a2), "Should allow city upgrade on player's settlement");
     }
+
+    // Road: edge should be claimed and resources deducted after a valid executeBuild
+    @Test
+    void executeBuild_road_deductsResourcesAndPlacesRoad() {
+        // give player a settlement at node 0 so they're connected to edge 0
+        Node n = board.getNodes().get(0);
+        n.setStructureOwner(p0);
+        n.setStructureType(StructureType.SETTLEMENT);
+
+        Edge e = board.getEdges().get(0);
+        p0.getResourceHand().addResource(ResourceType.WOOD, 1);
+        p0.getResourceHand().addResource(ResourceType.BRICK, 1);
+
+        BuildAction a = new BuildAction(BuildType.ROAD, null, e);
+        board.executeBuild(p0, a);
+
+        assertEquals(p0, e.getRoadOwner());
+        assertEquals(0, p0.getResourceHand().getResources().get(ResourceType.WOOD));
+    }
+
+    // Settlement: VP goes up by 1 and the node reflects the new structure
+    @Test
+    void executeBuild_settlement_awardsVP() {
+        // connect player to node 0 via a road on edge 0
+        board.getEdges().get(0).setRoadOwner(p0);
+        Node n = board.getNodes().get(0);
+
+        p0.getResourceHand().addResource(ResourceType.WOOD, 1);
+        p0.getResourceHand().addResource(ResourceType.BRICK, 1);
+        p0.getResourceHand().addResource(ResourceType.WHEAT, 1);
+        p0.getResourceHand().addResource(ResourceType.SHEEP, 1);
+
+        BuildAction a = new BuildAction(BuildType.SETTLEMENT, n, null);
+        board.executeBuild(p0, a);
+
+        assertEquals(1, p0.getVictoryPoints());
+        assertEquals(p0, n.getStructureOwner());
+        assertEquals(StructureType.SETTLEMENT, n.getStructureType());
+    }
+
+    // With an empty hand, executeBuild should silently skip — edge stays unowned
+    @Test
+    void executeBuild_insufficientResources_skips() {
+        // valid road position but no resources
+        Node n = board.getNodes().get(0);
+        n.setStructureOwner(p0);
+        n.setStructureType(StructureType.SETTLEMENT);
+
+        Edge e = board.getEdges().get(0);
+
+        BuildAction a = new BuildAction(BuildType.ROAD, null, e);
+        board.executeBuild(p0, a);
+
+        assertNull(e.getRoadOwner());
+        assertEquals(0, p0.getVictoryPoints());
+    }
 }
