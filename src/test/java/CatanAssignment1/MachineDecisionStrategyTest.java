@@ -65,4 +65,24 @@ public class MachineDecisionStrategyTest {
                         new BuildAction(BuildType.SETTLEMENT, n, null)));
         assertEquals(BuildType.SETTLEMENT, chosen.getType());
     }
+
+    // null candidates list → should return PASS
+    @Test
+    void chooseAction_nullCandidates_returnsPass() {
+        BuildAction chosen = strategy.chooseAction(p, board, null);
+        assertEquals(BuildType.PASS, chosen.getType());
+    }
+
+    // two roads score equally under NonVpBuildRule → tie-break picks one
+    @Test
+    void chooseAction_tieBreaking_returnsSomeAction() {
+        ImmediateValueDecisionStrategy roadOnly = new ImmediateValueDecisionStrategy(
+                List.of(new NonVpBuildRule()));
+        Edge e1 = board.getEdges().get(0);
+        Edge e2 = board.getEdges().get(1);
+        BuildAction chosen = roadOnly.chooseAction(p, board,
+                List.of(new BuildAction(BuildType.ROAD, null, e1),
+                        new BuildAction(BuildType.ROAD, null, e2)));
+        assertEquals(BuildType.ROAD, chosen.getType());
+    }
 }

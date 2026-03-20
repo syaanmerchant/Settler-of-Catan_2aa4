@@ -3,6 +3,7 @@ package CatanAssignment1;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,5 +55,28 @@ public class SimulatorTest {
         Simulator sim = new Simulator(board, four, 2, null);
         sim.runSimulation();
         assertEquals(2, sim.getCurrentRound());
+    }
+
+    // player at 10 VP → checkWin triggers, sim ends after first round
+    @Test
+    void checkWin_returnsTrue_whenPlayerHas10VP() {
+        players.get(0).addVictoryPoints(10);
+        Simulator sim = new Simulator(board, players, 5, null);
+        sim.runSimulation();
+        assertEquals(1, sim.getCurrentRound());
+    }
+
+    // non-null writer should produce a file on disk
+    @Test
+    void simulator_passesNonNullWriter_writesState() {
+        File tmp = new File("test_state_" + System.nanoTime() + ".json");
+        tmp.deleteOnExit();
+        GameStateWriter writer = new GameStateWriter(tmp.getAbsolutePath());
+
+        Simulator sim = new Simulator(board, players, 1, writer);
+        sim.runSimulation();
+
+        assertTrue(tmp.exists());
+        assertTrue(tmp.length() > 0);
     }
 }

@@ -92,4 +92,12 @@ public class CommandHistoryTest {
         assertFalse(history.canUndo());
         assertFalse(history.canRedo());
     }
+
+    // redo on an empty stack should be a no-op
+    @Test
+    void redo_onEmptyStack_doesNothing() {
+        assertFalse(history.redo());
+        assertFalse(history.canRedo());
+        assertEquals(0, history.getRedoStackSize());
+    }
 }

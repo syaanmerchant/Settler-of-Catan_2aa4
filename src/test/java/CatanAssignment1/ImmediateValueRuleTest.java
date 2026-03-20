@@ -45,4 +45,24 @@ public class ImmediateValueRuleTest {
         BuildAction a = new BuildAction(BuildType.ROAD, null, null);
         assertEquals(0.0, new LowHandAfterSpendRule().valueIfApplies(p, a));
     }
+
+    // null action → null guard fires, returns 0
+    @Test
+    void vpEarningRule_returnsZero_forNullAction() {
+        assertEquals(0.0, new VpEarningRule().valueIfApplies(null, null));
+    }
+
+    // null action → null guard fires, returns 0
+    @Test
+    void nonVpBuildRule_returnsZero_forNullAction() {
+        assertEquals(0.0, new NonVpBuildRule().valueIfApplies(null, null));
+    }
+
+    // PASS action → PASS guard fires, returns 0
+    @Test
+    void lowHandAfterSpendRule_returnsZero_forPassAction() {
+        MachinePlayer p = new MachinePlayer(0);
+        BuildAction pass = new BuildAction(BuildType.PASS, null, null);
+        assertEquals(0.0, new LowHandAfterSpendRule().valueIfApplies(p, pass));
+    }
 }

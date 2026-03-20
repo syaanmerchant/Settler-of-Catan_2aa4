@@ -71,4 +71,35 @@ public class MachinePlayerTest {
         BuildAction action = p.takeTurn(board);
         assertEquals(BuildType.ROAD, action.getType());
     }
+
+    // settlement exists + city resources → should upgrade to city
+    @Test
+    void takeTurn_city_whenSettlementExists() {
+        Node n = board.getNodes().get(0);
+        n.setStructureOwner(p);
+        n.setStructureType(StructureType.SETTLEMENT);
+
+        p.getResourceHand().addResource(ResourceType.WHEAT, 2);
+        p.getResourceHand().addResource(ResourceType.ORE, 3);
+
+        BuildAction action = p.takeTurn(board);
+        assertEquals(BuildType.CITY, action.getType());
+    }
+
+    // >7 cards should force the build-attempt branch
+    @Test
+    void takeTurn_withOver7Cards_stillBuilds() {
+        Node n = board.getNodes().get(0);
+        n.setStructureOwner(p);
+        n.setStructureType(StructureType.SETTLEMENT);
+
+        // 8 total cards, includes WOOD+BRICK for a road
+        p.getResourceHand().addResource(ResourceType.WOOD, 2);
+        p.getResourceHand().addResource(ResourceType.BRICK, 2);
+        p.getResourceHand().addResource(ResourceType.WHEAT, 2);
+        p.getResourceHand().addResource(ResourceType.SHEEP, 2);
+
+        BuildAction action = p.takeTurn(board);
+        assertNotEquals(BuildType.PASS, action.getType());
+    }
 }
