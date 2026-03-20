@@ -36,4 +36,23 @@ public class SimulatorTest {
         sim.runSimulation();
         assertTrue(sim.getHistory().canUndo());
     }
+
+    // applyRollForPlayer routes non-7 rolls through CommandHistory → undo stack grows
+    @Test
+    void applyRollForPlayer_pushesToCommandHistory() {
+        Simulator sim = new Simulator(board, players, 5, null);
+        sim.runSimulation();
+        assertTrue(sim.getHistory().getUndoStackSize() > 0);
+    }
+
+    // simulation should stop exactly at maxRounds when no one wins
+    @Test
+    void runSimulation_stopsAtMaxRounds() {
+        // 4 players with empty hands → no builds → no VP → no early exit
+        List<Player> four = new ArrayList<>();
+        for (int i = 0; i < 4; i++) four.add(new MachinePlayer(i));
+        Simulator sim = new Simulator(board, four, 2, null);
+        sim.runSimulation();
+        assertEquals(2, sim.getCurrentRound());
+    }
 }
